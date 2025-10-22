@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>+EV Betting Analyzer - Props Supported</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .header .features {
+            margin-top: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            padding: 30px 40px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-width: 140px;
+        }
+
+        .refresh-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .refresh-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #2c3e50;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .opportunities-grid {
+            display: grid;
+            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
+        }
+
+        .event-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .max-ev-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9em;
+        }
+
+        .event-header {
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .sport-tag {
+            display: inline-block;
+            background: #e9ecef;
+            color: #495057;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .event-info h3 {
+            color: #2c3e50;
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .event-time {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .market-section {
+            margin-bottom: 20px;
+        }
+
+        .market-section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .props-section-title {
+            border-left-color: #6f42c1;
+        }
+
+        .opportunities-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .opportunity-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #007bff;
+            transition: all 0.2s ease;
+        }
+
+        .opportunity-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .prop-item {
+            border-left-color: #6f42c1;
+        }
+
+        .opportunity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .market-info {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.95em;
+        }
+
+        .selection-text {
+            color: #2c3e50;
+            font-size: 0.9em;
+            margin-top: 2px;
+        }
+
+        .ev-value {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .book-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .target-book {
+            background: linear-gradient(135deg, #007bff 0%, #6f42c1 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .odds-display {
+            font-size: 1.05em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .odds-subtext {
+            color: #6c757d;
+            font-size: 0.85em;
+            font-weight: normal;
+        }
+
+        .bankroll-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .bankroll-option {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .bankroll-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+            font-size: 0.85em;
+        }
+
+        .bet-amount {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #007bff;
+        }
+
+        .profit-amount {
+            font-size: 0.85em;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .event-summary {
+            background: #e3f2fd;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 6px;
+            font-size: 0.9em;
+        }
+
+        .summary-profits {
+            display: flex;
+            justify-content: space-around;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .summary-100 {
+            color: #1976d2;
+        }
+
+        .summary-500 {
+            color: #388e3c;
+        }
+
+        .no-opportunities {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .no-opportunities h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        @media (max-width: 768px) {
+            .opportunities-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .stats {
+                justify-content: center;
+            }
+            
+            .bankroll-section {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .summary-profits {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 +EV Betting Analyzer</h1>
+            <p>Find Positive Expected Value Opportunities</p>
+            <div class="features">
+                <strong>Sports:</strong> NFL • NBA • NCAA Football • MLB<br>
+                <strong>Markets:</strong> Moneyline • Spread • Totals • Player Props<br>
+                <strong>Target Books:</strong> BetMGM • DraftKings • FanDuel • Caesars
+            </div>
+        </div>
+
+        <div class="controls">
+            <div style="display: flex; gap: 10px;">
+                <button id="refresh-btn" class="refresh-btn" onclick="refreshData()">
+                    <span class="loading-spinner" id="loading-spinner"></span>
+                    <span id="btn-text">🔄 Refresh Data</span>
+                </button>
+                
+                <button style="background: #6c757d; color: white; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer;" onclick="debugAnalysis()">
+                    🔍 Debug
+                </button>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="total-opportunities">0</span>
+                    <span class="stat-label">Opportunities</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="total-events">0</span>
+                    <span class="stat-label">Events</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="last-update">Never</span>
+                    <span class="stat-label">Last Update</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="message-area"></div>
+            <div id="opportunities-container">
+                <div class="no-opportunities">
+                    <h3>No Data Yet</h3>
+                    <p>Click "Refresh Data" to scan for +EV betting opportunities</p>
+                    <p style="margin-top: 10px; font-size: 0.9em;">Includes standard markets and player props</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLoading = false;
+
+        function showMessage(message, type = 'success') {
+            const messageArea = document.getElementById('message-area');
+            messageArea.innerHTML = `<div class="${type}-message">${message}</div>`;
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+
+        function formatTime(isoString) {
+            if (!isoString) return 'Never';
+            const date = new Date(isoString);
+            return date.toLocaleTimeString();
+        }
+
+        function updateLoadingState(loading) {
+            isLoading = loading;
+            const btn = document.getElementById('refresh-btn');
+            const spinner = document.getElementById('loading-spinner');
+            const btnText = document.getElementById('btn-text');
+            
+            if (loading) {
+                btn.disabled = true;
+                spinner.style.display = 'inline-block';
+                btnText.textContent = 'Analyzing...';
+            } else {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = '🔄 Refresh Data';
+            }
+        }
+
+        function renderOpportunities(events) {
+            const container = document.getElementById('opportunities-container');
+            
+            if (!events || events.length === 0) {
+                container.innerHTML = `
+                    <div class="no-opportunities">
+                        <h3>No +EV Opportunities Found</h3>
+                        <p>No bets currently meet the 2%+ expected value threshold</p>
+                        <p><small>Scanning NFL, NBA, NCAA Football, MLB markets and props</small></p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="opportunities-grid">
+                    ${events.map(event => renderEventCard(event)).join('')}
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function renderEventCard(event) {
+            const hasStandard = event.standard_markets && event.standard_markets.length > 0;
+            const hasProps = event.player_props && event.player_props.length > 0;
+            
+            return `
+                <div class="event-card">
+                    <div class="max-ev-badge">Max +${event.max_ev}% EV</div>
+                    
+                    <div class="event-header">
+                        <div class="sport-tag">${event.sport_title}</div>
+                        <div class="event-info">
+                            <h3>${event.event_name}</h3>
+                            <div class="event-time">🕐 ${event.commence_time}</div>
+                        </div>
+                    </div>
+                    
+                    ${hasStandard ? `
+                        <div class="market-section">
+                            <div class="market-section-title">
+                                📊 Standard Markets (${event.standard_markets.length})
+                            </div>
+                            <div class="opportunities-list">
+                                ${event.standard_markets.map(opp => renderOpportunity(opp, false)).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${hasProps ? `
+                        <div class="market-section">
+                            <div class="market-section-title props-section-title">
+                                🎲 Player Props (${event.player_props.length})
+                            </div>
+                            <div class="opportunities-list">
+                                ${event.player_props.map(opp => renderOpportunity(opp, true)).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="event-summary">
+                        <div class="summary-title">
+                            ${event.total_opportunities} Total Opportunities
+                        </div>
+                        <div class="summary-profits">
+                            <div class="summary-100">$100 Bankroll: +${event.total_profit_100.toFixed(2)}</div>
+                            <div class="summary-500">$500 Bankroll: +${event.total_profit_500.toFixed(2)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOpportunity(opp, isProp) {
+            return `
+                <div class="opportunity-item ${isProp ? 'prop-item' : ''}">
+                    <div class="opportunity-header">
+                        <div>
+                            <div class="market-info">${opp.market_display}</div>
+                            <div class="selection-text">${opp.selection}</div>
+                        </div>
+                        <div class="ev-value">+${opp.ev_percentage}% EV</div>
+                    </div>
+                    
+                    <div class="book-info">
+                        <div class="target-book">🎯 ${opp.target_book}</div>
+                        <div class="odds-display">
+                            ${opp.target_odds > 0 ? '+' : ''}${opp.target_odds}
+                            <span class="odds-subtext">
+                                (${opp.target_implied_prob}% vs ${opp.consensus_prob}%)
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="bankroll-section">
+                        <div class="bankroll-option">
+                            <div class="bankroll-title">$100 Bankroll</div>
+                            <div class="bet-amount">Bet: ${opp.bet_100}</div>
+                            <div class="profit-amount">Profit: +${opp.profit_100}</div>
+                        </div>
+                        <div class="bankroll-option">
+                            <div class="bankroll-title">$500 Bankroll</div>
+                            <div class="bet-amount">Bet: ${opp.bet_500}</div>
+                            <div class="profit-amount">Profit: +${opp.profit_500}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function refreshData() {
+            if (isLoading) return;
+            
+            updateLoadingState(true);
+            showMessage('Starting analysis... Scanning NFL, NBA, NCAA Football, MLB markets and props. This may take 1-2 minutes.', 'success');
+            
+            try {
+                const response = await fetch('/api/refresh', {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Poll for results
+                pollForResults();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error starting analysis: ' + error.message, 'error');
+                updateLoadingState(false);
+            }
+        }
+
+        async function pollForResults() {
+            const maxAttempts = 90; // 3 minutes max (more time for props)
+            let attempts = 0;
+            
+            const poll = async () => {
+                try {
+                    const response = await fetch('/api/opportunities');
+                    const data = await response.json();
+                    
+                    if (!data.is_loading) {
+                        // Analysis complete
+                        updateLoadingState(false);
+                        updateUI(data);
+                        
+                        showMessage(`Analysis complete! Found ${data.total_count} opportunities across ${data.opportunities.length} events.`, 'success');
+                        return;
+                    }
+                    
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(poll, 2000); // Poll every 2 seconds
+                    } else {
+                        updateLoadingState(false);
+                        showMessage('Analysis timed out. Please try again.', 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Polling error:', error);
+                    updateLoadingState(false);
+                    showMessage('Error getting results: ' + error.message, 'error');
+                }
+            };
+            
+            poll();
+        }
+
+        function updateUI(data) {
+            console.log('UpdateUI called with data:', data);
+            
+            // Update stats
+            document.getElementById('total-opportunities').textContent = data.total_count || 0;
+            document.getElementById('total-events').textContent = data.opportunities ? data.opportunities.length : 0;
+            document.getElementById('last-update').textContent = formatTime(data.last_update);
+            
+            // Render opportunities
+            renderOpportunities(data.opportunities);
+        }
+
+        async function debugAnalysis() {
+            try {
+                const response = await fetch('/api/debug');
+                const data = await response.json();
+                
+                console.log('=== DEBUG ANALYSIS ===');
+                console.log('Cached opportunities count:', data.cached_opportunities_count);
+                console.log('Cached opportunities type:', data.cached_opportunities_type);
+                console.log('Raw data count:', data.cached_raw_data_count);
+                console.log('Props count:', data.props_count);
+                console.log('Standard markets count:', data.standard_markets_count);
+                console.log('Is loading:', data.is_loading);
+                console.log('Sports found:', data.sports_found);
+                console.log('Target books:', data.target_books);
+                console.log('Available books:', data.available_books);
+                console.log('Target books found:', data.target_books_found);
+                console.log('Sample opportunity:', data.sample_opportunity);
+                
+                showMessage(`Debug: ${data.cached_opportunities_count} events, ${data.props_count} props, ${data.standard_markets_count} standard. Check console.`, 'success');
+                
+            } catch (error) {
+                console.error('Debug error:', error);
+                showMessage('Debug error: ' + error.message, 'error');
+            }
+        }
+
+        // Load initial data on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('/api/opportunities');
+                const data = await response.json();
+                updateUI(data);
+                updateLoadingState(data.is_loading);
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+                showMessage('Error loading initial data. Click Refresh to start.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
